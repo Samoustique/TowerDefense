@@ -57,6 +57,9 @@ public class Mob : MonoBehaviour {
         {
             // mob is dead
             GameManager.gold += reward;
+            txtReward.text = "+" + reward;
+            GameManager.ShowUpReward(transform.position, txtReward.gameObject);
+
             DestroyObject();
         }
     }
@@ -66,8 +69,6 @@ public class Mob : MonoBehaviour {
         Object explosion = Instantiate(particle, transform.position, Quaternion.identity);
         Destroy(this.gameObject);
         Destroy(explosion, explosionLifeTime);
-        txtReward.text = "+" + reward;
-        GameManager.ShowUpReward(transform.position, txtReward.gameObject);
     }
 
     void OnDestroy()

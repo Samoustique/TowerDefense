@@ -84,7 +84,7 @@ abstract public class Tower : MonoBehaviour {
         // Sending bullet
         GameObject _bullet = (GameObject) Instantiate(bullet, canon.transform.position, Quaternion.identity);
         PropulseBullet(_bullet, target);
-     }
+    }
 
     virtual public void Update()
     {
