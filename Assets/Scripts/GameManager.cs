@@ -8,35 +8,51 @@ using System;
 
 public class GameManager : MonoBehaviour {
 
-    public static int gold = 2000;
+    public static int gold = 35000;
     public static int life = 5;
     public static List<GameObject> mobsAlive = new List<GameObject>();
 
     public Text txtGold, txtLife;
     public GameObject particles, home;
-    public List<Material> homeColors;
+    public int constructionLast = 600;
 
     private static Material notSelectedMaterial;
 	private static GameObject selectedTower;
-	
+
     private Toggle[] toggles;
-    private GameObject titleRound, smallTitleRound;
+    private Dictionary<TglTower, Tower> choiceTowers;
+    private GameObject title, smallTitle;
     private UnityStandardAssets.ImageEffects.TiltShift tiltShift;
-    private float roundTimer, spawnTimer, spawnLaps = 2;
-    private int nbSpawnInARound, nbRound = 1;
-    private bool showTitleRoundText;
+    private float titleTimer, spawnTimer, constructionTimer, spawnLaps;
+    //private int nbSpawnInARound;
+    private int nbRound = 1;
+    private bool showTitleText;
     private Spawn spawner;
-	
+    private enum Step
+    {
+        CONSTRUCTION_TITLE,
+        CONSTRUCTION,
+        ROUND_TITLE,
+        ROUND
+    };
+    private Step step;
+
     void Start()
     {
-        showTitleRoundText = true;
         toggles = GameObject.Find("TowerChoice").GetComponentsInChildren<Toggle>();
-        titleRound = GameObject.Find("titleRound");
-        smallTitleRound = GameObject.Find("smallTitleRound");
+        choiceTowers = new Dictionary<TglTower, Tower>();
+        retrieveChoiceTowers();
+        DisableChoices();
+
+        title = GameObject.Find("title");
+        smallTitle = GameObject.Find("smallTitle");
         tiltShift = GameObject.Find("Main Camera").GetComponent<UnityStandardAssets.ImageEffects.TiltShift>();
-        roundTimer = Time.time;
+        titleTimer = constructionTimer = Time.time;
+        spawnLaps = 2;
         spawner = GameObject.Find("Spawn").GetComponentInChildren<Spawn>();
-		HideTowerDetails();
+        step = Step.CONSTRUCTION_TITLE;
+
+        HideTowerDetails();
     }
 
     void Update()
@@ -57,30 +73,147 @@ public class GameManager : MonoBehaviour {
             Destroy(GameObject.Find("home"));
         }
     }
-	
-	private void UpdateRound()
-	{
-		showTitleRoundText = Time.time < roundTimer + 2;
-        titleRound.SetActive(showTitleRoundText);
-        tiltShift.enabled = showTitleRoundText;
-        smallTitleRound.SetActive(!showTitleRoundText);
 
-        if (showTitleRoundText)
+    void DisableChoices()
+    {
+        // disable towerChoice
+        foreach (TglTower tglTower in choiceTowers.Keys)
         {
-            (titleRound.GetComponent<Text>()).text = "Round " + nbRound;
-            spawnTimer = Time.time;
-            nbSpawnInARound = 0;
+            tglTower.disable();
+        }
+    }
+
+    void EnableChoices()
+    {
+        foreach (TglTower tglTower in choiceTowers.Keys)
+        {
+            tglTower.enable();
+        }
+    }
+
+    private void ConstructionTitleTime()
+    {
+        (title.GetComponent<Text>()).text = "Construction";
+        title.SetActive(true);
+        tiltShift.enabled = true;
+        smallTitle.SetActive(false);
+        foreach(Toggle toggle in toggles)
+        {
+            toggle.enabled = false;
+        }
+
+        if (Time.time >= titleTimer + 2)
+        {
+            step = Step.CONSTRUCTION;
+            constructionTimer = Time.time;
+            EnableChoices();
+        }
+    }
+
+    private void ConstructionTime()
+    {
+        (smallTitle.GetComponent<Text>()).text = "Construction";
+        title.SetActive(false);
+        tiltShift.enabled = false;
+        smallTitle.SetActive(true);
+
+        if (Time.time >= constructionTimer + constructionLast)
+        {
+            step = Step.ROUND_TITLE;
+            titleTimer = Time.time;
+            //nbSpawnInARound = 0;
+            DisableChoices();
+        }
+    }
+
+    private void RoundTitleTime()
+    {
+        (title.GetComponent<Text>()).text = "Round " + nbRound;
+        title.SetActive(true);
+        tiltShift.enabled = true;
+        smallTitle.SetActive(false);
+        foreach (Toggle toggle in toggles)
+        {
+            toggle.enabled = false;
+        }
+
+        if (Time.time >= titleTimer + 2)
+        {
+            step = Step.ROUND;
+            titleTimer = Time.time;
+        }
+    }
+
+    private void RoundTime()
+    {
+        (smallTitle.GetComponent<Text>()).text = "Round " + nbRound;
+        title.SetActive(false);
+        tiltShift.enabled = false;
+        smallTitle.SetActive(true);
+
+        // if we finished to spawn everybody
+        if (Spawn.mobsPerRound[nbRound - 1].Count == 0)
+        {
+            if (GameManager.mobsAlive.Count == 0)
+            {
+                titleTimer = Time.time;
+                nbRound++;
+                step = Step.CONSTRUCTION_TITLE;
+            }
         }
         else
         {
-            (smallTitleRound.GetComponent<Text>()).text = "Round " + nbRound;
+            if (Time.time > spawnTimer + spawnLaps)
+            {
+                //nbSpawnInARound++;
+                spawner.SpawnMob(nbRound);
+                spawnTimer = Time.time;
+            }
+        }
+    }
+
+    private void UpdateRound()
+	{
+        switch (step)
+        {
+            case Step.CONSTRUCTION_TITLE :
+                ConstructionTitleTime();
+                break;
+            case Step.CONSTRUCTION :
+                ConstructionTime();
+                break;
+            case Step.ROUND_TITLE :
+                RoundTitleTime();
+                break;
+            case Step.ROUND :
+                RoundTime();
+                break;
+        }
+
+
+
+		/*showTitleText = Time.time < titleTimer + 2;
+        title.SetActive(showTitleText);
+        tiltShift.enabled = showTitleText;
+        smallTitle.SetActive(!showTitleText);
+
+        if (showTitleText)
+        {
+            (title.GetComponent<Text>()).text = "Round " + nbRound;
+            spawnTimer = Time.time;
+            nbSpawnInARound = 0;
+            // TODO : hide tower choice
+        }
+        else
+        {
+            (smallTitle.GetComponent<Text>()).text = "Round " + nbRound;
             // if we finished to spawn everybody
             if (Spawn.mobsPerRound[nbRound - 1].Count == 0)
             {
                 if (GameManager.mobsAlive.Count == 0)
                 {
-                    // next round
-                    roundTimer = Time.time;
+                    // construction phasis and then next round
+                    constructionTimer = Time.time;
                     nbRound++;
                 }
             }
@@ -93,7 +226,7 @@ public class GameManager : MonoBehaviour {
                     spawnTimer = Time.time;
                 }
             }
-        }
+        }*/
 	}
 
     static public void ShowUpReward(Vector3 showPosition, GameObject textToInstantiate)
@@ -116,27 +249,34 @@ public class GameManager : MonoBehaviour {
 	
 	private void UpdateTowerSelection()
 	{
-		foreach (Toggle toggle in toggles)
+        if (step == Step.CONSTRUCTION)
         {
-            TglTower tglTower = toggle.GetComponent<TglTower>() as TglTower;
-            Tower tower = null;		
-			Transform sphere = FindSphereInChildren(tglTower.towerToBuild.transform);
-			if (sphere != null)
-			{
-				tower = sphere.GetComponent<Tower>() as Tower;
-			}
-
-            if (tower != null)
+            foreach (TglTower tglTower in choiceTowers.Keys)
             {
-                if (gold >= tower.cost)
+                if (gold >= choiceTowers[tglTower].cost)
                     tglTower.enable();
                 else
                     tglTower.disable();
             }
         }
 	}
-	
-	private void UpdateTowerDetails()
+
+    private void retrieveChoiceTowers()
+    {
+        foreach (Toggle toggle in toggles)
+        {
+            TglTower tglTower = toggle.GetComponent<TglTower>() as TglTower;
+            Tower tower = null;
+            Transform sphere = FindSphereInChildren(tglTower.towerToBuild.transform);
+            if (sphere != null)
+            {
+                tower = sphere.GetComponent<Tower>() as Tower;
+                choiceTowers.Add(tglTower, tower);
+            }
+        }
+    }
+
+    private void UpdateTowerDetails()
 	{
 		/*if(selectedTower != null)
 		{

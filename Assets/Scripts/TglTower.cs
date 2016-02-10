@@ -1,13 +1,13 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using System;
 
 public class TglTower : MonoBehaviour
 {
 
     public GameObject towerToBuild;
     public Sprite selectOK;
-    public Sprite selectKO;
     public Sprite noselectOK;
     public Sprite noselectKO;
     public bool isActive;
@@ -15,28 +15,59 @@ public class TglTower : MonoBehaviour
 
     private Toggle toggle;
     private Image[] images;
+    private Tower tower;
 
     void Start()
     {
         toggle = GetComponent<Toggle>();
         images = toggle.GetComponentsInChildren<Image>();
+
+        foreach (Transform child in towerToBuild.transform)
+        {
+            if (child.name == "Sphere")
+            {
+                tower = child.GetComponent<Tower>() as Tower;
+                break;
+            }
+        }
+
+        toggle.onValueChanged.AddListener(StatusChanged);
     }
 
-    public void TowerTglClick()
+    private void StatusChanged(bool isThereMoneyPb)
     {
-        if (toggle.isOn) {
-            foreach (GameObject floor in GameObject.FindGameObjectsWithTag("floor"))
+        RefreshBuildable(toggle.isOn, towerToBuild, isThereMoneyPb);
+    }
+
+    /** *********************** REFRESH BUILDABLE  *************************  */
+    public void RefreshBuildable(bool isOn, GameObject towerToBuild, bool isThereMoneyPb)
+    {
+        StartCoroutine(RefreshBuildableCoroutine(isOn, towerToBuild, isThereMoneyPb));
+    }
+
+    private IEnumerator RefreshBuildableCoroutine(bool isOn, GameObject towerToBuild, bool isThereMoneyPb)
+    {
+        foreach (GameObject floor in GameObject.FindGameObjectsWithTag("floor"))
+        {
+            Build build = floor.GetComponent("Build") as Build;
+            if (!build.hasTower)
             {
-                Build build = floor.GetComponent("Build") as Build;
-                build.towerToBuild = isActive ? towerToBuild : null;
+                build.towerToBuild = isOn ? towerToBuild : null;
+                build.NotifyTowerChanged(isOn, isThereMoneyPb);
+                yield return new WaitForSeconds(0.0001F);
             }
         }
     }
+    /** *********************** REFRESH BUILDABLE  *************************  */
 
     public void enable()
     {
-        isActive = true;
-        TowerTglClick();
+        if (!isActive)
+        {
+            toggle.enabled = true;
+            isActive = true;
+            toggle.isOn = false;
+        }
         foreach (Image image in images)
         {
             string name = image.gameObject.transform.name;
@@ -49,27 +80,24 @@ public class TglTower : MonoBehaviour
 
     public void disable()
     {
-        isActive = false;
-        TowerTglClick();
+        if (isActive)
+        {
+            toggle.enabled = false;
+            isActive = false;
+            toggle.isOn = false;
+        }
         foreach (Image image in images)
         {
             string name = image.gameObject.transform.name;
             if (name.Equals("Background"))
-                image.sprite = toggle.isOn ? selectKO : noselectKO;
+                image.sprite = noselectKO;
             else if (name.Equals("Checkmark"))
-                image.sprite = toggle.isOn ? selectKO : noselectKO;
+                image.sprite = noselectKO;
         }
     }
 	
 	void Update()
 	{
-		foreach (Transform child in towerToBuild.transform)
-		{
-			if (child.name == "Sphere") {
-				Tower tower = child.GetComponent<Tower>() as Tower;
-				txtCost.text = tower.cost + "";
-				break;
-			}
-		}
+        txtCost.text = tower.cost + "";
 	}
 }

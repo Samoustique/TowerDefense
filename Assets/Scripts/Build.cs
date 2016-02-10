@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
+using System;
 
 public class Build : MonoBehaviour {
     
@@ -10,11 +11,10 @@ public class Build : MonoBehaviour {
     public Text txtInfo;
 	public Material selectedMaterial;
 		
-	private bool isMouseOverChecked, wouldBlockPath;
-	private GameObject fakeObstacle, obstacle;
-	private GameObject fakeMob;
+	private bool isBuildable;
+	private GameObject fakeObstacle, fakeMob;
     private Color basicQuadColor;
-
+    
     void Start()
     {
         hasTower = false;
@@ -23,108 +23,84 @@ public class Build : MonoBehaviour {
         basicQuadColor = GetComponent<Renderer>().material.color;
     }
 
-	void OnMouseOver ()
-	{
-		if(!isMouseOverChecked)
-		{
-			isMouseOverChecked = true;
-			StartCoroutine(CheckMouseOver(0.0001));
-		}
-	}
-
-    void OnMouseExit()
-    {
-        GetComponent<Renderer>().material.color = basicQuadColor;
-		Destroy(obstacle);
-		wouldBlockPath = false;
-		isMouseOverChecked = false;
-    }
-
     void OnMouseUp()
     {
-        if (isMouseOverChecked)
+        // Display tower data
+        GameManager.SelectUnselectTower(towerBuilt, selectedMaterial);
+        if (isBuildable && towerToBuild && !towerBuilt)
         {
-            // Display tower data
-            GameManager.SelectUnselectTower(towerBuilt, selectedMaterial);
-            if (wouldBlockPath)
-            {
-                StartCoroutine(ShowMessage("Don't block the way !", 2));
-            }
-            else if (towerToBuild && !towerBuilt)
-            {
-                print("build");
-                towerBuilt = Instantiate(towerToBuild, transform.position, Quaternion.identity) as GameObject;
-                Tower tower = towerBuilt.GetComponentInChildren<Tower>() as Tower;
-                GameManager.gold -= tower.cost;
-                GetComponent<Renderer>().material.color = Color.blue;
-            }
-            else if (!towerBuilt)
-            {
-                StartCoroutine(ShowMessage("Not enough cash !", 2));
-            }
+            towerBuilt = Instantiate(towerToBuild, transform.position, Quaternion.identity) as GameObject;
+            Tower tower = towerBuilt.GetComponentInChildren<Tower>() as Tower;
+            GameManager.gold -= tower.cost;
+            GetComponent<Renderer>().material.color = basicQuadColor;
+            RefreshBuildable(true, towerToBuild, true);
         }
     }
 
-    private IEnumerator ShowMessage(string message, float delay)
+    /** *********************** REFRESH BUILDABLE  *************************  */
+    public void RefreshBuildable(bool isOn, GameObject towerToBuild, bool isThereMoneyPb)
     {
-        txtInfo.text = message;
-        txtInfo.enabled = true;
-        yield return new WaitForSeconds(delay);
-        txtInfo.enabled = false;
+        StartCoroutine(RefreshBuildableCoroutine(isOn, towerToBuild, isThereMoneyPb));
     }
-		
-	private IEnumerator CheckMouseOver(double delay)
-    {
-		Color colorToSet = basicQuadColor;
-		NavMeshPath path = null;
 
-		if (towerBuilt == null && towerToBuild != null)
-		{
-			obstacle = Instantiate(fakeObstacle, transform.position, Quaternion.identity) as GameObject;
-			path = new NavMeshPath();
-		}
-		
-		yield return new WaitForSeconds((float) delay);
-		
-		// Check if there has been no mouseExit while waiting
-		if(isMouseOverChecked)
-		{
-			// case OK
-			colorToSet = Color.green;
-			if (path != null)
-				print("towerBuilt : " + towerBuilt + " towerToBuild : " + towerToBuild + " path : " + path.status);
-			else
-				print("towerBuilt : " + towerBuilt + " towerToBuild : " + towerToBuild + " path : " + path);
-			// case already built
-			if (towerBuilt != null)
-			{
-				colorToSet = Color.blue;
-			}
-			// case not enough cash
-			else if(towerToBuild == null)
-			{
-				colorToSet = Color.red;
-			}
-			// case check the way
-			else 
-			{
-				if (path !=null)
-				{
-					NavMeshAgent agent = fakeMob.GetComponent<NavMeshAgent>();
-					agent.CalculatePath(GameObject.Find("home").transform.position, path);
-					print(path.status);
-					// the way can be blocked
-					if (path.status != NavMeshPathStatus.PathComplete)
-					{
-						print("ROUGE");
-						colorToSet = Color.red;
-						wouldBlockPath = true;
-					}
-				}
-				Destroy(obstacle);
-			}
-			
-			GetComponent<Renderer>().material.color = colorToSet;
-		}
+    private IEnumerator RefreshBuildableCoroutine(bool isOn, GameObject towerToBuild, bool isThereMoneyPb)
+    {
+        foreach (GameObject floor in GameObject.FindGameObjectsWithTag("floor"))
+        {
+            Build build = floor.GetComponent("Build") as Build;
+            if (!build.hasTower)
+            {
+                build.towerToBuild = isOn ? towerToBuild : null;
+                build.NotifyTowerChanged(isOn, isThereMoneyPb);
+                yield return new WaitForSeconds(0.0001F);
+            }
+        }
     }
+    /** *********************** REFRESH BUILDABLE  *************************  */
+
+    /** *********************** CHECK BUILDABLE  *************************  */
+    public void NotifyTowerChanged(bool isOn, bool isThereMoneyPb)
+    {
+        StartCoroutine(CheckBuildableCoroutine(isOn, isThereMoneyPb, 0.0001F));
+    }
+
+    private IEnumerator CheckBuildableCoroutine(bool isOn, bool isThereMoneyPb, double delay)
+    {
+        Color colorToSet = basicQuadColor;
+        NavMeshPath path = null;
+
+        if (towerBuilt == null)
+        {
+            GameObject obstacle = null;
+            if (isOn && towerToBuild != null)
+            {
+                obstacle = Instantiate(fakeObstacle, transform.position, Quaternion.identity) as GameObject;
+                path = new NavMeshPath();
+            }
+
+            yield return new WaitForSeconds((float)delay);
+            if (path != null)
+            {
+                NavMeshAgent agent = fakeMob.GetComponent<NavMeshAgent>();
+                agent.CalculatePath(GameObject.Find("home").transform.position, path);
+                // the way can be blocked
+                if (path.status != NavMeshPathStatus.PathComplete)
+                {
+                    isBuildable = false;
+                }
+                else
+                {
+                    isBuildable = true;
+                    colorToSet = Color.green;
+                }
+            }
+            Destroy(obstacle);
+        }
+        else
+        {
+            isBuildable = false;
+        }
+        GetComponent<Renderer>().material.color = colorToSet;
+    }
+    /** *********************** CHECK BUILDABLE  *************************  */
 }
