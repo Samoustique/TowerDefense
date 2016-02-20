@@ -8,20 +8,22 @@ using System;
 
 public class GameManager : MonoBehaviour {
 
-    public static int gold = 35000;
+    public static int gold = 3500;
     public static int life = 5;
     public static List<GameObject> mobsAlive = new List<GameObject>();
 
-    public Text txtGold, txtLife;
+    public Text txtGold, txtLife, txtTimerConstruction;
+    public Button btnNextWave;
     public GameObject particles, home;
-    public int constructionLast = 600;
+    public int constructionLast;
 
     private static Material notSelectedMaterial;
 	private static GameObject selectedTower;
+    private static GameObject selectionAura;
 
     private Toggle[] toggles;
     private Dictionary<TglTower, Tower> choiceTowers;
-    private GameObject title, smallTitle;
+    private GameObject title, smallTitle, timerConstruction, nextWave;
     private UnityStandardAssets.ImageEffects.TiltShift tiltShift;
     private float titleTimer, spawnTimer, constructionTimer, spawnLaps;
     //private int nbSpawnInARound;
@@ -44,8 +46,8 @@ public class GameManager : MonoBehaviour {
         retrieveChoiceTowers();
         DisableChoices();
 
-        title = GameObject.Find("title");
-        smallTitle = GameObject.Find("smallTitle");
+        title = GameObject.Find("txtTitle");
+        smallTitle = GameObject.Find("txtSmallTitle");
         tiltShift = GameObject.Find("Main Camera").GetComponent<UnityStandardAssets.ImageEffects.TiltShift>();
         titleTimer = constructionTimer = Time.time;
         spawnLaps = 2;
@@ -53,6 +55,10 @@ public class GameManager : MonoBehaviour {
         step = Step.CONSTRUCTION_TITLE;
 
         HideTowerDetails();
+        
+        btnNextWave.onClick.AddListener(EndConstructionTime);
+        nextWave = GameObject.Find("btnNextWave");
+        nextWave.SetActive(false);
     }
 
     void Update()
@@ -106,6 +112,8 @@ public class GameManager : MonoBehaviour {
         {
             step = Step.CONSTRUCTION;
             constructionTimer = Time.time;
+            txtTimerConstruction.enabled = true;
+            nextWave.SetActive(true);
             EnableChoices();
         }
     }
@@ -116,14 +124,26 @@ public class GameManager : MonoBehaviour {
         title.SetActive(false);
         tiltShift.enabled = false;
         smallTitle.SetActive(true);
-
-        if (Time.time >= constructionTimer + constructionLast)
+        
+        // timer display
+        float timeLeft = constructionTimer + constructionLast - Time.time;
+        int seconds = (int)(timeLeft % 60F);
+        txtTimerConstruction.text = seconds.ToString("00");
+        
+        if (seconds == 0)
         {
-            step = Step.ROUND_TITLE;
-            titleTimer = Time.time;
-            //nbSpawnInARound = 0;
-            DisableChoices();
+            EndConstructionTime();
         }
+    }
+
+    public void EndConstructionTime()
+    {
+        txtTimerConstruction.enabled = false;
+        nextWave.SetActive(false);
+        step = Step.ROUND_TITLE;
+        titleTimer = Time.time;
+        //nbSpawnInARound = 0;
+        DisableChoices();
     }
 
     private void RoundTitleTime()
@@ -189,44 +209,6 @@ public class GameManager : MonoBehaviour {
                 RoundTime();
                 break;
         }
-
-
-
-		/*showTitleText = Time.time < titleTimer + 2;
-        title.SetActive(showTitleText);
-        tiltShift.enabled = showTitleText;
-        smallTitle.SetActive(!showTitleText);
-
-        if (showTitleText)
-        {
-            (title.GetComponent<Text>()).text = "Round " + nbRound;
-            spawnTimer = Time.time;
-            nbSpawnInARound = 0;
-            // TODO : hide tower choice
-        }
-        else
-        {
-            (smallTitle.GetComponent<Text>()).text = "Round " + nbRound;
-            // if we finished to spawn everybody
-            if (Spawn.mobsPerRound[nbRound - 1].Count == 0)
-            {
-                if (GameManager.mobsAlive.Count == 0)
-                {
-                    // construction phasis and then next round
-                    constructionTimer = Time.time;
-                    nbRound++;
-                }
-            }
-            else
-            {
-                if (Time.time > spawnTimer + spawnLaps)
-                {
-                    nbSpawnInARound++;
-                    spawner.SpawnMob(nbRound);
-                    spawnTimer = Time.time;
-                }
-            }
-        }*/
 	}
 
     static public void ShowUpReward(Vector3 showPosition, GameObject textToInstantiate)
@@ -334,28 +316,25 @@ public class GameManager : MonoBehaviour {
 	{
 		if (!towerToSelect)
 		{
-			UnselectTower();
-		} else if (selectedTower != null && towerToSelect != selectedTower) // TODO autoriser cliquage dans zone d'infos de la tour
+            UnselectTower();
+		}
+        else if (selectedTower != null && towerToSelect != selectedTower) // TODO autoriser cliquage dans zone d'infos de la tour
 		{
-			UnselectTower();
+            UnselectTower();
 			SelectTower(towerToSelect, selectedMaterial);
 		}
 		else if (!selectedTower || towerToSelect != selectedTower) // TODO autoriser cliquage dans zone d'infos de la tour
 		{
-			SelectTower(towerToSelect, selectedMaterial);
+            SelectTower(towerToSelect, selectedMaterial);
 		}
 	}
 	
 	static private void SelectTower(GameObject towerToSelect, Material selectedMaterial)
 	{
-		selectedTower = towerToSelect;			
-		Transform sphere = FindSphereInChildren(towerToSelect.transform);
-		if (sphere != null)
-		{
-			notSelectedMaterial = sphere.GetComponent<Renderer>().material;
-			sphere.GetComponent<Renderer>().material = selectedMaterial;
-		}
-		RevealTowerDetails(towerToSelect);
+		selectedTower = towerToSelect;
+        selectionAura = (GameObject) Instantiate(GameObject.Find/*Resources.Load*/("SelectionAura"), towerToSelect.transform.position, Quaternion.identity);
+        selectionAura.transform.SetParent(selectedTower.transform);
+        RevealTowerDetails(towerToSelect);
 	}
 	
 	static private void RevealTowerDetails(GameObject towerToSelect)
@@ -375,21 +354,24 @@ public class GameManager : MonoBehaviour {
 		GameObject.Find("btnSell").GetComponent<Image>().enabled = true;
 		
 		Tower towerUp = null;
-		Transform sphere = FindSphereInChildren(tower.towerUp.transform);
-		if (sphere != null)
-		{
-			towerUp = sphere.GetComponent<Tower>() as Tower;
-		}
-		
-		if (towerUp)
-		{
-			DisplayTowerCharacteristic("Up", "Up\n" + towerUp.cost);
-			
-			GameObject gameObjectUp = GameObject.Find("btnUp");
-			gameObjectUp.GetComponent<Image>().enabled = true;
-			Button btnUp = gameObjectUp.GetComponent<Button>() as Button;
-			btnUp.interactable = gold >= towerUp.cost;
-		}
+        if (tower.towerUp != null)
+        {
+            Transform sphere = FindSphereInChildren(tower.towerUp.transform);
+            if (sphere != null)
+            {
+                towerUp = sphere.GetComponent<Tower>() as Tower;
+            }
+
+            if (towerUp)
+            {
+                DisplayTowerCharacteristic("Up", "Up\n" + towerUp.cost);
+
+                GameObject gameObjectUp = GameObject.Find("btnUp");
+                gameObjectUp.GetComponent<Image>().enabled = true;
+                Button btnUp = gameObjectUp.GetComponent<Button>() as Button;
+                btnUp.interactable = gold >= towerUp.cost;
+            }
+        }
 	}
 	
 	static private Transform FindSphereInChildren(Transform objectToInspect)
@@ -400,7 +382,8 @@ public class GameManager : MonoBehaviour {
 			if (child.name == "Sphere") {
 				return child;
 			}
-			else{
+			else
+            {
 				toReturn = FindSphereInChildren(child);
 				if(toReturn != null)
 				{
@@ -420,15 +403,9 @@ public class GameManager : MonoBehaviour {
 	
 	static public void UnselectTower()
 	{
-		if (selectedTower != null)
-		{
-			Transform sphere = FindSphereInChildren(selectedTower.transform);
-			if (sphere != null)
-			{
-				sphere.GetComponent<Renderer>().material = notSelectedMaterial;
-			}
-		}
-		selectedTower = null;
+        Destroy(selectionAura);
+        selectionAura = null;
+        selectedTower = null;
 		
 		HideTowerDetails();
 	}

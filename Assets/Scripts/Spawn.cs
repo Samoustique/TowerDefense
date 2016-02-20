@@ -63,9 +63,9 @@ public class Spawn : MonoBehaviour
         {
             new Dictionary<GameObject, int>()
             {
-                { referenceMobs[0], 2 },
-                //{ referenceMobs[1], 2 },
-                //{ referenceMobs[2], 2 }
+                { referenceMobs[0], 4 },
+                { referenceMobs[1], 4 },
+                { referenceMobs[2], 3 }
             },
             new Dictionary<GameObject, int>()
             {
