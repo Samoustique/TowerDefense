@@ -25,7 +25,7 @@ public class GameManager : MonoBehaviour {
     private Dictionary<TglTower, Tower> choiceTowers;
     private GameObject title, smallTitle, timerConstruction, nextWave;
     private UnityStandardAssets.ImageEffects.TiltShift tiltShift;
-    private float titleTimer, spawnTimer, constructionTimer, spawnLaps;
+    private float titleTimer, spawnTimer, constructionTimer, spawnLaps, shakeTimer, shakeAmount;
     //private int nbSpawnInARound;
     private int nbRound = 1;
     private bool showTitleText;
@@ -53,6 +53,8 @@ public class GameManager : MonoBehaviour {
         spawnLaps = 2;
         spawner = GameObject.Find("Spawn").GetComponentInChildren<Spawn>();
         step = Step.CONSTRUCTION_TITLE;
+        shakeAmount = 0.1F;
+        shakeTimer = 1F;
 
         HideTowerDetails();
         
@@ -75,6 +77,12 @@ public class GameManager : MonoBehaviour {
         txtLife.text = "LIFE : " + life;
         if (life == 0)
         {
+            if (shakeTimer >= 0)
+            {
+                Vector2 shakePos = UnityEngine.Random.insideUnitCircle * shakeAmount;
+                transform.position = new Vector3(transform.position.x + shakePos.x, transform.position.y + shakePos.y, transform.position.z);
+                shakeTimer -= Time.deltaTime;
+            }
             Instantiate(particles, GameObject.Find("home").transform.position, Quaternion.identity);
             Destroy(GameObject.Find("home"));
         }
