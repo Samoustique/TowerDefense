@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using System.Collections;
 using System;
+using System.Collections.Generic;
 
 public class TglTower : MonoBehaviour
 {
@@ -16,9 +17,16 @@ public class TglTower : MonoBehaviour
     private Toggle toggle;
     private Image[] images;
     private Tower tower;
+    private List<Build> builds;
 
     void Start()
     {
+        builds = new List<Build>();
+        foreach (GameObject floor in GameObject.FindGameObjectsWithTag("floor"))
+        {
+            builds.Add(floor.GetComponent("Build") as Build);
+        }
+
         toggle = GetComponent<Toggle>();
         images = toggle.GetComponentsInChildren<Image>();
 
@@ -36,7 +44,17 @@ public class TglTower : MonoBehaviour
 
     private void StatusChanged(bool isThereMoneyPb)
     {
-        RefreshBuildable(toggle.isOn, towerToBuild, isThereMoneyPb);
+        if (GameManager.step == GameManager.Step.CONSTRUCTION)
+        {
+            RefreshBuildable(toggle.isOn, towerToBuild, isThereMoneyPb);
+        }
+        else
+        {
+            foreach (Build build in builds)
+            {
+                build.NotifyDisable();
+            }
+        }
     }
 
     /** *********************** REFRESH BUILDABLE  *************************  */
@@ -47,9 +65,8 @@ public class TglTower : MonoBehaviour
 
     private IEnumerator RefreshBuildableCoroutine(bool isOn, GameObject towerToBuild, bool isThereMoneyPb)
     {
-        foreach (GameObject floor in GameObject.FindGameObjectsWithTag("floor"))
+        foreach (Build build in builds)
         {
-            Build build = floor.GetComponent("Build") as Build;
             if (!build.hasTower)
             {
                 build.towerToBuild = isOn ? towerToBuild : null;
@@ -58,7 +75,7 @@ public class TglTower : MonoBehaviour
             }
         }
     }
-    /** *********************** REFRESH BUILDABLE  *************************  */
+/** *********************** REFRESH BUILDABLE  *************************  */
 
     public void enable()
     {

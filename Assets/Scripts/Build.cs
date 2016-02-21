@@ -15,9 +15,16 @@ public class Build : MonoBehaviour {
 	private bool isBuildable;
 	private GameObject fakeObstacle, fakeMob;
     private Color basicQuadColor;
+    private List<Build> builds;
     
     void Start()
     {
+        builds = new List<Build>();
+        foreach (GameObject floor in GameObject.FindGameObjectsWithTag("floor"))
+        {
+            builds.Add(floor.GetComponent("Build") as Build);
+        }
+
         hasTower = false;
 		fakeObstacle = GameObject.Find("fakeObstacle");
 		fakeMob = GameObject.Find("fakeMob");
@@ -46,9 +53,8 @@ public class Build : MonoBehaviour {
 
     private IEnumerator RefreshBuildableCoroutine(bool isOn, GameObject towerToBuild, bool isThereMoneyPb)
     {
-        foreach (GameObject floor in GameObject.FindGameObjectsWithTag("floor"))
+        foreach (Build build in builds)
         {
-            Build build = floor.GetComponent("Build") as Build;
             if (!build.hasTower)
             {
                 build.towerToBuild = isOn ? towerToBuild : null;
@@ -62,10 +68,10 @@ public class Build : MonoBehaviour {
     /** *********************** CHECK BUILDABLE  *************************  */
     public void NotifyTowerChanged(bool isOn, bool isThereMoneyPb)
     {
-        StartCoroutine(CheckBuildableCoroutine(isOn, isThereMoneyPb, 0.0001F));
+        StartCoroutine(CheckBuildableCoroutine(isOn, isThereMoneyPb));
     }
 
-    private IEnumerator CheckBuildableCoroutine(bool isOn, bool isThereMoneyPb, double delay)
+    private IEnumerator CheckBuildableCoroutine(bool isOn, bool isThereMoneyPb)
     {
         Color colorToSet = basicQuadColor;
         NavMeshPath path = null;
@@ -79,7 +85,8 @@ public class Build : MonoBehaviour {
                 path = new NavMeshPath();
             }
 
-            yield return new WaitForSeconds((float)delay);
+            // wait 0sec = wait for the next frame
+            yield return new WaitForSeconds(0);
             if (path != null)
             {
                 NavMeshAgent agent = fakeMob.GetComponent<NavMeshAgent>();
@@ -104,4 +111,9 @@ public class Build : MonoBehaviour {
         GetComponent<Renderer>().material.color = colorToSet;
     }
     /** *********************** CHECK BUILDABLE  *************************  */
+
+    public void NotifyDisable()
+    {
+        GetComponent<Renderer>().material.color = basicQuadColor;
+    }
 }

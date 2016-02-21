@@ -1,0 +1,172 @@
+fileFormatVersion: 2
+guid: 21f22e498d0bed1448dfcc056b26ca00
+timeCreated: 1456086648
+licenseType: Free
+ModelImporter:
+  serializedVersion: 18
+  fileIDToRecycleName:
+    100000: ball
+    100002: bottom nos
+    100004: Cockpit
+    100006: engineglow
+    100008: Engines
+    100010: inside
+    100012: laserside
+    100014: middetails
+    100016: Nose
+    100018: nose
+    100020: noseballsu
+    100022: si1
+    100024: sides
+    100026: sit
+    100028: //RootNode
+    100030: top
+    100032: topballdes
+    100034: upperarms
+    100036: window
+    100038: wing
+    100040: wingpanel
+    100042: wingside
+    400000: ball
+    400002: bottom nos
+    400004: Cockpit
+    400006: engineglow
+    400008: Engines
+    400010: inside
+    400012: laserside
+    400014: middetails
+    400016: Nose
+    400018: nose
+    400020: noseballsu
+    400022: si1
+    400024: sides
+    400026: sit
+    400028: //RootNode
+    400030: top
+    400032: topballdes
+    400034: upperarms
+    400036: window
+    400038: wing
+    400040: wingpanel
+    400042: wingside
+    2300000: ball
+    2300002: bottom nos
+    2300004: Cockpit
+    2300006: engineglow
+    2300008: Engines
+    2300010: inside
+    2300012: laserside
+    2300014: middetails
+    2300016: Nose
+    2300018: nose
+    2300020: noseballsu
+    2300022: sides
+    2300024: top
+    2300026: topballdes
+    2300028: upperarms
+    2300030: window
+    2300032: wing
+    2300034: wingpanel
+    2300036: wingside
+    3300000: ball
+    3300002: bottom nos
+    3300004: Cockpit
+    3300006: engineglow
+    3300008: Engines
+    3300010: inside
+    3300012: laserside
+    3300014: middetails
+    3300016: Nose
+    3300018: nose
+    3300020: noseballsu
+    3300022: sides
+    3300024: top
+    3300026: topballdes
+    3300028: upperarms
+    3300030: window
+    3300032: wing
+    3300034: wingpanel
+    3300036: wingside
+    4300000: ball
+    4300002: bottom nos
+    4300004: engineglow
+    4300006: inside
+    4300008: laserside
+    4300010: middetails
+    4300012: nose
+    4300014: noseballsu
+    4300016: sides
+    4300018: top
+    4300020: topballdes
+    4300022: upperarms
+    4300024: window
+    4300026: wing
+    4300028: wingpanel
+    4300030: wingside
+    4300032: Cockpit
+    4300034: Nose
+    4300036: Engines
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    optimizeGameObjects: 0
+    motionNodeName: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    animationCompression: 1
+    animationRotationError: .5
+    animationPositionError: .5
+    animationScaleError: .5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importBlendShapes: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    splitTangentsAcrossUV: 1
+    normalImportMode: 0
+    tangentImportMode: 1
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    human: []
+    skeleton: []
+    armTwist: .5
+    foreArmTwist: .5
+    upperLegTwist: .5
+    legTwist: .5
+    armStretch: .0500000007
+    legStretch: .0500000007
+    feetSpacing: 0
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 0
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

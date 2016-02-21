@@ -11,11 +11,19 @@ public class GameManager : MonoBehaviour {
     public static int gold = 3500;
     public static int life = 5;
     public static List<GameObject> mobsAlive = new List<GameObject>();
+    public static Step step;
 
     public Text txtGold, txtLife, txtTimerConstruction;
     public Button btnNextWave;
     public GameObject particles, home;
     public int constructionLast;
+    public enum Step
+    {
+        CONSTRUCTION_TITLE,
+        CONSTRUCTION,
+        ROUND_TITLE,
+        ROUND
+    };
 
     private static Material notSelectedMaterial;
 	private static GameObject selectedTower;
@@ -30,14 +38,7 @@ public class GameManager : MonoBehaviour {
     private int nbRound = 1;
     private bool showTitleText;
     private Spawn spawner;
-    private enum Step
-    {
-        CONSTRUCTION_TITLE,
-        CONSTRUCTION,
-        ROUND_TITLE,
-        ROUND
-    };
-    private Step step;
+    private Transform originalCamera;  
 
     void Start()
     {
@@ -61,6 +62,8 @@ public class GameManager : MonoBehaviour {
         btnNextWave.onClick.AddListener(EndConstructionTime);
         nextWave = GameObject.Find("btnNextWave");
         nextWave.SetActive(false);
+
+        originalCamera = transform;
     }
 
     void Update()
@@ -107,6 +110,8 @@ public class GameManager : MonoBehaviour {
 
     private void ConstructionTitleTime()
     {
+        transform.position = originalCamera.position;
+        transform.rotation = originalCamera.rotation;
         (title.GetComponent<Text>()).text = "Construction";
         title.SetActive(true);
         tiltShift.enabled = true;
@@ -156,7 +161,7 @@ public class GameManager : MonoBehaviour {
 
     private void RoundTitleTime()
     {
-        (title.GetComponent<Text>()).text = "Round " + nbRound;
+        (title.GetComponent<Text>()).text = "Wave " + nbRound;
         title.SetActive(true);
         tiltShift.enabled = true;
         smallTitle.SetActive(false);
@@ -174,10 +179,13 @@ public class GameManager : MonoBehaviour {
 
     private void RoundTime()
     {
-        (smallTitle.GetComponent<Text>()).text = "Round " + nbRound;
+        (smallTitle.GetComponent<Text>()).text = "Wave " + nbRound;
         title.SetActive(false);
         tiltShift.enabled = false;
         smallTitle.SetActive(true);
+        GameObject center = GameObject.Find("Quad (26)");
+        transform.LookAt(center.transform);
+        transform.RotateAround(center.transform.position, new Vector3((float)Math.Cos(Time.time), 1, 0), Time.deltaTime * 10);
 
         // if we finished to spawn everybody
         if (Spawn.mobsPerRound[nbRound - 1].Count == 0)
@@ -222,7 +230,8 @@ public class GameManager : MonoBehaviour {
     static public void ShowUpReward(Vector3 showPosition, GameObject textToInstantiate)
     {
         Vector3 worldToScreenPoint = Camera.main.WorldToScreenPoint(showPosition);
-        GameObject empty = Instantiate(new GameObject(), worldToScreenPoint, Quaternion.identity) as GameObject;
+        GameObject toDelete = new GameObject();
+        GameObject empty = Instantiate(toDelete, worldToScreenPoint, Quaternion.identity) as GameObject;
         empty.transform.name = "RewardWrapper";
         empty.transform.SetParent(GameObject.Find("Canvas").transform);
         GameObject temp = Instantiate(textToInstantiate, worldToScreenPoint, Quaternion.identity) as GameObject;
@@ -230,6 +239,7 @@ public class GameManager : MonoBehaviour {
         temp.GetComponent<Animator>().SetTrigger("Reward");
         Destroy(temp.gameObject, 1.0F);
         Destroy(empty.gameObject, 1.0F);
+        Destroy(toDelete, 1.0F);
     }
 
     private void UpdateGold()
@@ -358,7 +368,7 @@ public class GameManager : MonoBehaviour {
 		DisplayTowerCharacteristic("Dmg", "Dmg\n" + bullet.damage);
 		DisplayTowerCharacteristic("Rng", "Rng\n" + sphereColl.radius);
 		DisplayTowerCharacteristic("Rhy", "Rhy\n" + tower.rhythm);
-		DisplayTowerCharacteristic("Sell", "Sell\n" + tower.sellingPrice);
+		DisplayTowerCharacteristic("Sell", "Sell\n+" + tower.sellingPrice);
 		GameObject.Find("btnSell").GetComponent<Image>().enabled = true;
 		
 		Tower towerUp = null;
@@ -372,7 +382,7 @@ public class GameManager : MonoBehaviour {
 
             if (towerUp)
             {
-                DisplayTowerCharacteristic("Up", "Up\n" + towerUp.cost);
+                DisplayTowerCharacteristic("Up", "Up\n-" + towerUp.cost);
 
                 GameObject gameObjectUp = GameObject.Find("btnUp");
                 gameObjectUp.GetComponent<Image>().enabled = true;
