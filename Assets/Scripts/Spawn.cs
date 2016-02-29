@@ -22,43 +22,6 @@ public class Spawn : MonoBehaviour
                 print(k.Key + " - " + k.Value);
             }
         }*/
-        /*mobsPerRound = new List<Dictionary<int, int>>()
-        {
-            new Dictionary<int, int>()
-            {
-                { referenceMobs[1].GetInstanceID(), 3 }
-            },
-            new Dictionary<int, int>()
-            {
-                { referenceMobs[0].GetInstanceID(), 3 },
-                { referenceMobs[1].GetInstanceID(), 1 }
-            },
-            new Dictionary<int, int>()
-            {
-                { referenceMobs[0].GetInstanceID(), 4 },
-                { referenceMobs[1].GetInstanceID(), 1 }
-            },
-            new Dictionary<int, int>()
-            {
-                { referenceMobs[0].GetInstanceID(), 5 },
-                { referenceMobs[1].GetInstanceID(), 2 }
-            },
-            new Dictionary<int, int>()
-            {
-                { referenceMobs[0].GetInstanceID(), 6 },
-                { referenceMobs[1].GetInstanceID(), 4 }
-            },
-            new Dictionary<int, int>()
-            {
-                { referenceMobs[0].GetInstanceID(), 8 },
-                { referenceMobs[1].GetInstanceID(), 4 }
-            },
-            new Dictionary<int, int>()
-            {
-                { referenceMobs[0].GetInstanceID(), 8 },
-                { referenceMobs[1].GetInstanceID(), 6 }
-            }
-        };*/
         mobsPerRound = new List<Dictionary<GameObject, int>>()
         {
             new Dictionary<GameObject, int>()

@@ -204,6 +204,7 @@ public class GameManager : MonoBehaviour {
                 //nbSpawnInARound++;
                 spawner.SpawnMob(nbRound);
                 spawnTimer = Time.time;
+				spawnLaps = UnityEngine.Random.Range(0.2F, 3F);
             }
         }
     }
@@ -286,7 +287,6 @@ public class GameManager : MonoBehaviour {
 			cb.normalColor = Color.red;
 			btnUp.colors = cb;
 			btnUp.interactable = gold >= tower.evolvPrice;
-			print("ici " + btnUp.interactable);
 		}*/
 	}
 

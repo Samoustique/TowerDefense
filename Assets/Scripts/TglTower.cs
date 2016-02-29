@@ -53,6 +53,10 @@ public class TglTower : MonoBehaviour
             foreach (Build build in builds)
             {
                 build.NotifyDisable();
+				if (!build.hasTower)
+				{
+					build.towerToBuild = null;
+				}
             }
         }
     }
