@@ -38,7 +38,8 @@ public class GameManager : MonoBehaviour {
     private int nbRound = 1;
     private bool showTitleText;
     private Spawn spawner;
-    private Transform originalCamera;  
+    //private Transform originalCamera;  
+	private Animator animator;
 
     void Start()
     {
@@ -63,7 +64,9 @@ public class GameManager : MonoBehaviour {
         nextWave = GameObject.Find("btnNextWave");
         nextWave.SetActive(false);
 
-        originalCamera = transform;
+        //originalCamera = transform;
+
+		animator = ((Animator)GetComponent<Animator>());
     }
 
     void Update()
@@ -110,8 +113,8 @@ public class GameManager : MonoBehaviour {
 
     private void ConstructionTitleTime()
     {
-        transform.position = originalCamera.position;
-        transform.rotation = originalCamera.rotation;
+        /*transform.position = originalCamera.position;
+        transform.rotation = originalCamera.rotation;*/
         (title.GetComponent<Text>()).text = "Construction";
         title.SetActive(true);
         tiltShift.enabled = true;
@@ -174,6 +177,7 @@ public class GameManager : MonoBehaviour {
         {
             step = Step.ROUND;
             titleTimer = Time.time;
+			animator.Play("CameraCrossField2Anim", -1, 0F);
         }
     }
 
@@ -183,9 +187,9 @@ public class GameManager : MonoBehaviour {
         title.SetActive(false);
         tiltShift.enabled = false;
         smallTitle.SetActive(true);
-        GameObject center = GameObject.Find("Quad (26)");
+        /*GameObject center = GameObject.Find("Quad (26)");
         transform.LookAt(center.transform);
-        transform.RotateAround(center.transform.position, new Vector3((float)Math.Cos(Time.time), 1, 0), Time.deltaTime * 10);
+        transform.RotateAround(center.transform.position, new Vector3((float)Math.Cos(Time.time), 1, 0), Time.deltaTime * 10);*/
 
         // if we finished to spawn everybody
         if (Spawn.mobsPerRound[nbRound - 1].Count == 0)
@@ -195,6 +199,7 @@ public class GameManager : MonoBehaviour {
                 titleTimer = Time.time;
                 nbRound++;
                 step = Step.CONSTRUCTION_TITLE;
+				animator.Play("CameraReturnAnim", -1, 0F);
             }
         }
         else
