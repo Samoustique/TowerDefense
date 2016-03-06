@@ -13,6 +13,7 @@ public class GameManager : MonoBehaviour {
     public static List<GameObject> mobsAlive = new List<GameObject>();
     public static Step step;
 
+	public GameObject topCamObject;
     public Text txtGold, txtLife, txtTimerConstruction;
     public Button btnNextWave;
     public GameObject particles, home;
@@ -40,6 +41,7 @@ public class GameManager : MonoBehaviour {
     private Spawn spawner;
     //private Transform originalCamera;  
 	private Animator animator;
+	private Camera topCam;
 
     void Start()
     {
@@ -67,10 +69,14 @@ public class GameManager : MonoBehaviour {
         //originalCamera = transform;
 
 		animator = ((Animator)GetComponent<Animator>());
+
+		topCam = (Camera) topCamObject.GetComponent<Camera> ();
     }
 
     void Update()
     {
+		InputKeys();
+
         UpdateRound();
 
         UpdateGold();
@@ -93,6 +99,14 @@ public class GameManager : MonoBehaviour {
             Destroy(GameObject.Find("home"));
         }
     }
+
+	void InputKeys()
+	{
+		if (Input.GetKeyDown (KeyCode.Tab))
+		{
+			topCam.enabled = !topCam.enabled;
+		}
+	}
 
     void DisableChoices()
     {
@@ -177,7 +191,6 @@ public class GameManager : MonoBehaviour {
         {
             step = Step.ROUND;
             titleTimer = Time.time;
-			animator.Play("CameraCrossField2Anim", -1, 0F);
         }
     }
 
@@ -187,9 +200,11 @@ public class GameManager : MonoBehaviour {
         title.SetActive(false);
         tiltShift.enabled = false;
         smallTitle.SetActive(true);
-        /*GameObject center = GameObject.Find("Quad (26)");
-        transform.LookAt(center.transform);
-        transform.RotateAround(center.transform.position, new Vector3((float)Math.Cos(Time.time), 1, 0), Time.deltaTime * 10);*/
+
+		if (animator.GetCurrentAnimatorStateInfo (0).IsName ("Stationnary"))
+		{
+			LaunchRandomCamAnim();
+		}
 
         // if we finished to spawn everybody
         if (Spawn.mobsPerRound[nbRound - 1].Count == 0)
@@ -231,6 +246,14 @@ public class GameManager : MonoBehaviour {
                 RoundTime();
                 break;
         }
+	}
+
+	private void LaunchRandomCamAnim()
+	{
+		String cameraCrossField = "CameraCrossField";
+		String anim = "Anim";
+		int animNumber = UnityEngine.Random.Range(1, 4);
+		animator.Play(cameraCrossField + animNumber + anim, -1, 0F);
 	}
 
     static public void ShowUpReward(Vector3 showPosition, GameObject textToInstantiate)
@@ -295,46 +318,6 @@ public class GameManager : MonoBehaviour {
 		}*/
 	}
 
-    /*static public bool LoadMobsPerRound()
-    {
-        Spawn.mobsPerRound = new List<Dictionary<int, int>>();
-        Dictionary<int, int> round = new Dictionary<int, int>();
-        try
-        {
-            string line;
-            StreamReader theReader = new StreamReader("C:\\Users\\Public\\Documents\\Unity Projects\\New Unity Project\\Assets\\Documents\\Spawn.txt", Encoding.Default);
-            using (theReader)
-            {
-                do
-                {
-                    line = theReader.ReadLine();
-
-                    if (line != null)
-                    {
-                        if (line.Length == 0)
-                        {
-                            Spawn.mobsPerRound.Add(round);
-                            round = new Dictionary<int, int>();
-                        }
-                        else
-                        {
-                            string[] entries = line.Split(' ');
-                            round.Add(System.Convert.ToInt32(entries[0]), System.Convert.ToInt32(entries[1]));
-                        }
-                    }
-                }
-                while (line != null); 
-                theReader.Close();
-                return true;
-            }
-        }
-        catch (System.Exception e)
-        {
-            print("Exception during load");
-            return false;
-        }
-    }*/
-	
 	static public void SelectUnselectTower(GameObject towerToSelect, Material selectedMaterial)
 	{
 		if (!towerToSelect)

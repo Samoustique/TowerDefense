@@ -2,6 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using System.IO;
+using System.Text;
 using System;
 
 public class Spawn : MonoBehaviour
@@ -14,54 +16,46 @@ public class Spawn : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        /*GameManager.LoadMobsPerRound();
-        foreach (Dictionary<int, int> dic in mobsPerRound)
-        {
-            foreach (KeyValuePair<int, int> k in dic)
-            {
-                print(k.Key + " - " + k.Value);
-            }
-        }*/
-        mobsPerRound = new List<Dictionary<GameObject, int>>()
-        {
-            new Dictionary<GameObject, int>()
-            {
-                { referenceMobs[0], 1 },
-                //{ referenceMobs[1], 4 },
-                //{ referenceMobs[2], 3 }
-            },
-            new Dictionary<GameObject, int>()
-            {
-                { referenceMobs[0], 3 },
-                { referenceMobs[1], 1 }
-            },
-            new Dictionary<GameObject, int>()
-            {
-                { referenceMobs[0], 4 },
-                { referenceMobs[1], 1 }
-            },
-            new Dictionary<GameObject, int>()
-            {
-                { referenceMobs[0], 5 },
-                { referenceMobs[1], 2 }
-            },
-            new Dictionary<GameObject, int>()
-            {
-                { referenceMobs[0], 6 },
-                { referenceMobs[1], 4 }
-            },
-            new Dictionary<GameObject, int>()
-            {
-                { referenceMobs[0], 8 },
-                { referenceMobs[1], 4 }
-            },
-            new Dictionary<GameObject, int>()
-            {
-                { referenceMobs[0], 8 },
-                { referenceMobs[1], 6 }
-            }
-        };
+		LoadMobsPerRound();
     }
+
+	public void LoadMobsPerRound()
+	{
+		mobsPerRound = new List<Dictionary<GameObject, int>>();
+		Dictionary<GameObject, int> round = new Dictionary<GameObject, int>();
+		try
+		{
+			string line;
+			StreamReader theReader = new StreamReader(".\\Assets\\Documents\\Spawn.txt", Encoding.Default);
+			using (theReader)
+			{
+				do
+				{
+					line = theReader.ReadLine();
+					
+					if (line != null)
+					{
+						if (line.Length == 0)
+						{
+							mobsPerRound.Add(round);
+							round = new Dictionary<GameObject, int>();
+						}
+						else
+						{
+							string[] entries = line.Split(' ');
+							round.Add(referenceMobs[System.Convert.ToInt32(entries[0])], System.Convert.ToInt32(entries[1]));
+						}
+					}
+				}
+				while (line != null); 
+				theReader.Close();
+			}
+		}
+		catch (System.Exception e)
+		{
+			print("Exception during load");
+		}
+	}
 
     public void SpawnMob(int nbRound)
     {
