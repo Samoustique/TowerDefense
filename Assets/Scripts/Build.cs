@@ -14,7 +14,7 @@ public class Build : MonoBehaviour {
 		
 	private bool isBuildable;
 	private GameObject fakeObstacle, fakeMob;
-    private Color basicQuadColor;
+	private Material basicQuadMaterial;
     private List<Build> builds;
     
     void Start()
@@ -28,19 +28,19 @@ public class Build : MonoBehaviour {
         hasTower = false;
 		fakeObstacle = GameObject.Find("fakeObstacle");
 		fakeMob = GameObject.Find("fakeMob");
-        basicQuadColor = GetComponent<Renderer>().material.color;
+		basicQuadMaterial = GetComponent<Renderer>().material;
     }
 
     void OnMouseUp()
     {
         // Display tower data
-        GameManager.SelectUnselectTower(towerBuilt, selectedMaterial);
+        GameManager.SelectUnselectTower(towerBuilt);
         if (isBuildable && towerToBuild && !towerBuilt)
         {
             towerBuilt = Instantiate(towerToBuild, transform.position, Quaternion.identity) as GameObject;
             Tower tower = towerBuilt.GetComponentInChildren<Tower>() as Tower;
             GameManager.gold -= tower.cost;
-            GetComponent<Renderer>().material.color = basicQuadColor;
+			GetComponent<Renderer>().material = basicQuadMaterial;
             RefreshBuildable(true, towerToBuild, true);
         }
     }
@@ -73,7 +73,7 @@ public class Build : MonoBehaviour {
 
     private IEnumerator CheckBuildableCoroutine(bool isOn, bool isThereMoneyPb)
     {
-        Color colorToSet = basicQuadColor;
+		Material materialToSet = basicQuadMaterial;
         NavMeshPath path = null;
 
         if (towerBuilt == null)
@@ -99,7 +99,7 @@ public class Build : MonoBehaviour {
                 else
                 {
                     isBuildable = true;
-                    colorToSet = Color.green;
+					materialToSet = selectedMaterial;
                 }
             }
             Destroy(obstacle);
@@ -108,12 +108,12 @@ public class Build : MonoBehaviour {
         {
             isBuildable = false;
         }
-        GetComponent<Renderer>().material.color = colorToSet;
+		GetComponent<Renderer>().material = materialToSet;
     }
     /** *********************** CHECK BUILDABLE  *************************  */
 
     public void NotifyDisable()
     {
-        GetComponent<Renderer>().material.color = basicQuadColor;
+		GetComponent<Renderer>().material = basicQuadMaterial;
     }
 }

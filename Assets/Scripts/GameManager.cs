@@ -318,7 +318,7 @@ public class GameManager : MonoBehaviour {
 		}*/
 	}
 
-	static public void SelectUnselectTower(GameObject towerToSelect, Material selectedMaterial)
+	static public void SelectUnselectTower(GameObject towerToSelect)
 	{
 		if (!towerToSelect)
 		{
@@ -327,18 +327,18 @@ public class GameManager : MonoBehaviour {
         else if (selectedTower != null && towerToSelect != selectedTower) // TODO autoriser cliquage dans zone d'infos de la tour
 		{
             UnselectTower();
-			SelectTower(towerToSelect, selectedMaterial);
+			SelectTower(towerToSelect);
 		}
 		else if (!selectedTower || towerToSelect != selectedTower) // TODO autoriser cliquage dans zone d'infos de la tour
 		{
-            SelectTower(towerToSelect, selectedMaterial);
+            SelectTower(towerToSelect);
 		}
 	}
 	
-	static private void SelectTower(GameObject towerToSelect, Material selectedMaterial)
+	static private void SelectTower(GameObject towerToSelect)
 	{
 		selectedTower = towerToSelect;
-        selectionAura = (GameObject) Instantiate(GameObject.Find/*Resources.Load*/("SelectionAura"), towerToSelect.transform.position, Quaternion.identity);
+        selectionAura = (GameObject) Instantiate(GameObject.Find("SelectionAura"), towerToSelect.transform.position, Quaternion.identity);
         selectionAura.transform.SetParent(selectedTower.transform);
         RevealTowerDetails(towerToSelect);
 	}
