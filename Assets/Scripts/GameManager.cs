@@ -20,6 +20,7 @@ public class GameManager : MonoBehaviour {
     public int constructionLast;
     public enum Step
     {
+		STARTING,
         CONSTRUCTION_TITLE,
         CONSTRUCTION,
         ROUND_TITLE,
@@ -34,12 +35,11 @@ public class GameManager : MonoBehaviour {
     private Dictionary<TglTower, Tower> choiceTowers;
     private GameObject title, smallTitle, timerConstruction, nextWave;
     private UnityStandardAssets.ImageEffects.TiltShift tiltShift;
-    private float titleTimer, spawnTimer, constructionTimer, spawnLaps, shakeTimer, shakeAmount;
+    private float startTimer, titleTimer, spawnTimer, constructionTimer, spawnLaps, shakeTimer, shakeAmount;
     //private int nbSpawnInARound;
     private int nbRound = 1;
     private bool showTitleText;
     private Spawn spawner;
-    //private Transform originalCamera;  
 	private Animator animator;
 	private Camera topCam;
 
@@ -51,12 +51,12 @@ public class GameManager : MonoBehaviour {
         DisableChoices();
 
         title = GameObject.Find("txtTitle");
+		title.SetActive(false);
         smallTitle = GameObject.Find("txtSmallTitle");
         tiltShift = GameObject.Find("Main Camera").GetComponent<UnityStandardAssets.ImageEffects.TiltShift>();
-        titleTimer = constructionTimer = Time.time;
         spawnLaps = 2;
         spawner = GameObject.Find("Spawn").GetComponentInChildren<Spawn>();
-        step = Step.CONSTRUCTION_TITLE;
+		step = Step.STARTING;
         shakeAmount = 0.1F;
         shakeTimer = 1F;
 
@@ -66,11 +66,11 @@ public class GameManager : MonoBehaviour {
         nextWave = GameObject.Find("btnNextWave");
         nextWave.SetActive(false);
 
-        //originalCamera = transform;
-
 		animator = ((Animator)GetComponent<Animator>());
-
 		topCam = (Camera) topCamObject.GetComponent<Camera> ();
+
+		animator.Play("CameraStartAnim", -1, 0F);
+		startTimer = Time.time;
     }
 
     void Update()
@@ -125,28 +125,35 @@ public class GameManager : MonoBehaviour {
         }
     }
 
-    private void ConstructionTitleTime()
-    {
-        /*transform.position = originalCamera.position;
-        transform.rotation = originalCamera.rotation;*/
-        (title.GetComponent<Text>()).text = "Construction";
-        title.SetActive(true);
-        tiltShift.enabled = true;
-        smallTitle.SetActive(false);
-        foreach(Toggle toggle in toggles)
-        {
-            toggle.enabled = false;
-        }
+	private void StratingTime()
+	{
+		if (Time.time >= startTimer + 0.1F && animator.GetCurrentAnimatorStateInfo (0).IsName ("Stationnary"))
+		{
+			step = Step.CONSTRUCTION_TITLE;
+			titleTimer = constructionTimer = Time.time;
+		}
+	}
 
-        if (Time.time >= titleTimer + 2)
-        {
-            step = Step.CONSTRUCTION;
-            constructionTimer = Time.time;
-            txtTimerConstruction.enabled = true;
-            nextWave.SetActive(true);
-            EnableChoices();
-        }
-    }
+	private void ConstructionTitleTime()
+	{
+		(title.GetComponent<Text>()).text = "Construction";
+		title.SetActive(true);
+		tiltShift.enabled = true;
+		smallTitle.SetActive(false);
+		foreach(Toggle toggle in toggles)
+		{
+			toggle.enabled = false;
+		}
+		
+		if (Time.time >= titleTimer + 2)
+		{
+			step = Step.CONSTRUCTION;
+			constructionTimer = Time.time;
+			txtTimerConstruction.enabled = true;
+			nextWave.SetActive(true);
+			EnableChoices();
+		}
+	}
 
     private void ConstructionTime()
     {
@@ -233,6 +240,9 @@ public class GameManager : MonoBehaviour {
 	{
         switch (step)
         {
+			case Step.STARTING :
+				StratingTime();
+				break;
             case Step.CONSTRUCTION_TITLE :
                 ConstructionTitleTime();
                 break;
